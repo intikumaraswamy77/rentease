@@ -1,6 +1,8 @@
 const mongoose = require('mongoose');
+require('dotenv').config();
 
-mongoose.connect('mongodb://127.0.0.1:27017/rentease').then(async () => {
+const uri = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/rentease';
+mongoose.connect(uri).then(async () => {
   const Product = mongoose.model('Product', new mongoose.Schema({}, { strict: false }));
   const User = mongoose.model('User', new mongoose.Schema({}, { strict: false }));
   
