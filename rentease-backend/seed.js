@@ -50,8 +50,38 @@ mongoose.connect(uri).then(async () => {
       image: 'https://images.unsplash.com/photo-1626806787461-102c1bfaaea1?auto=format&fit=crop&w=800&q=80',
       monthlyRent: 900, securityDeposit: 1800, rentalTenureOptions: [3, 6, 12],
       stock: 3, available: true, rating: 4.5, reviews: 29, owner: admin?._id
+    },
+    {
+      name: 'Ergonomic Office Chair', category: 'furniture', subcategory: 'Office',
+      description: 'High-back mesh ergonomic office chair with adjustable lumbar support.',
+      image: 'https://images.unsplash.com/photo-1505843490538-5133c6c7d0e1?auto=format&fit=crop&w=800&q=80',
+      monthlyRent: 450, securityDeposit: 1000, rentalTenureOptions: [3, 6, 12],
+      stock: 8, available: true, rating: 4.7, reviews: 14, owner: admin?._id
+    },
+    {
+      name: 'Solid Wood Study Table', category: 'furniture', subcategory: 'Office',
+      description: 'Spacious solid oak wood study table with two built-in drawers.',
+      image: 'https://images.unsplash.com/photo-1518455027359-f3f8164ba6bd?auto=format&fit=crop&w=800&q=80',
+      monthlyRent: 600, securityDeposit: 1200, rentalTenureOptions: [3, 6, 12],
+      stock: 4, available: true, rating: 4.8, reviews: 21, owner: admin?._id
+    },
+    {
+      name: 'Microwave Oven 20L', category: 'appliances', subcategory: 'Kitchen',
+      description: '20L convection microwave oven with auto-cook menus.',
+      image: 'https://images.unsplash.com/photo-1585659722983-39cb3ee870f7?auto=format&fit=crop&w=800&q=80',
+      monthlyRent: 300, securityDeposit: 800, rentalTenureOptions: [3, 6, 12],
+      stock: 7, available: true, rating: 4.4, reviews: 11, owner: admin?._id
+    },
+    {
+      name: '1.5 Ton Split AC', category: 'appliances', subcategory: 'Living Room',
+      description: 'Energy efficient 1.5 ton inverter split air conditioner.',
+      image: 'https://images.unsplash.com/photo-1622313627995-10ebcb2566ec?auto=format&fit=crop&w=800&q=80',
+      monthlyRent: 1500, securityDeposit: 3000, rentalTenureOptions: [3, 6, 12],
+      stock: 5, available: true, rating: 4.9, reviews: 33, owner: admin?._id
     }
   ];
+  
+  await Product.deleteMany({});
   
   for(let p of products) {
      await Product.create(p);
