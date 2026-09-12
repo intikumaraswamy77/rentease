@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
@@ -13,10 +13,13 @@ export default function Checkout() {
   const [cvv, setCvv] = useState('');
   const [name, setName] = useState('');
 
-  if (!state || !state.deliveryAddress) {
-    navigate('/cart');
-    return null;
-  }
+  useEffect(() => {
+    if (!state || !state.deliveryAddress) {
+      navigate('/cart');
+    }
+  }, [state, navigate]);
+
+  if (!state || !state.deliveryAddress) return null;
 
   const { deliveryDate, pickupDate, deliveryAddress, cartAmount } = state;
 

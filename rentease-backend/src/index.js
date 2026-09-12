@@ -220,9 +220,13 @@ app.get('/api/products', async (req, res) => {
 });
 
 app.get('/api/products/:id', async (req, res) => {
-  const product = await Product.findById(req.params.id);
-  if (!product) return res.status(404).json({ message: 'Product not found' });
-  res.json(product);
+  try {
+    const product = await Product.findById(req.params.id);
+    if (!product) return res.status(404).json({ message: 'Product not found' });
+    res.json(product);
+  } catch (err) {
+    res.status(500).json({ message: 'Invalid product ID or server error' });
+  }
 });
 
 // User listings
@@ -252,6 +256,17 @@ app.delete('/api/products/:id', authMiddleware, async (req, res) => {
     if (product.owner && product.owner.toString() !== req.user.id && req.user.role !== 'admin') {
       return res.status(403).json({ message: 'Not authorized to delete this product' });
     }
+    
+    // BUG FIX: Check if there are active rentals before deleting
+    const activeRentals = await Rental.countDocuments({ 
+      'items.productId': req.params.id, 
+      status: { $in: ['pending', 'confirmed', 'delivered', 'active', 'maintenance'] }
+    });
+    
+    if (activeRentals > 0) {
+      return res.status(400).json({ message: 'Cannot delete product with active rentals. Please mark it as out of stock instead.' });
+    }
+
     await Product.findByIdAndDelete(req.params.id);
     res.json({ message: 'Product deleted' });
   } catch (err) {
@@ -397,14 +412,22 @@ app.post('/api/rentals/create', authMiddleware, async (req, res) => {
 });
 
 app.get('/api/rentals', authMiddleware, async (req, res) => {
-  const rentals = await Rental.find({ user: req.user.id }).sort({ createdAt: -1 });
-  res.json(rentals);
+  try {
+    const rentals = await Rental.find({ user: req.user.id }).sort({ createdAt: -1 });
+    res.json(rentals);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
 });
 
 app.get('/api/rentals/:id', authMiddleware, async (req, res) => {
-  const rental = await Rental.findOne({ _id: req.params.id, user: req.user.id });
-  if (!rental) return res.status(404).json({ message: 'Rental not found' });
-  res.json(rental);
+  try {
+    const rental = await Rental.findOne({ _id: req.params.id, user: req.user.id });
+    if (!rental) return res.status(404).json({ message: 'Rental not found' });
+    res.json(rental);
+  } catch (err) {
+    res.status(500).json({ message: 'Invalid rental ID' });
+  }
 });
 
 app.post('/api/rentals/:id/maintenance', authMiddleware, async (req, res) => {
@@ -451,54 +474,72 @@ app.get('/api/admin/stats', authMiddleware, adminMiddleware, async (req, res) =>
 });
 
 app.get('/api/admin/rentals', authMiddleware, adminMiddleware, async (req, res) => {
-  const rentals = await Rental.find().populate('user', 'name email').sort({ createdAt: -1 });
-  res.json(rentals);
+  try {
+    const rentals = await Rental.find().populate('user', 'name email').sort({ createdAt: -1 });
+    res.json(rentals);
+  } catch(err) { res.status(500).json({ message: err.message }) }
 });
 
 app.put('/api/admin/rentals/:id/status', authMiddleware, adminMiddleware, async (req, res) => {
-  const rental = await Rental.findByIdAndUpdate(req.params.id, { status: req.body.status }, { new: true });
-  res.json(rental);
+  try {
+    const rental = await Rental.findByIdAndUpdate(req.params.id, { status: req.body.status }, { new: true });
+    res.json(rental);
+  } catch(err) { res.status(500).json({ message: err.message }) }
 });
 
 app.get('/api/admin/products', authMiddleware, adminMiddleware, async (req, res) => {
-  const products = await Product.find();
-  res.json(products);
+  try {
+    const products = await Product.find();
+    res.json(products);
+  } catch(err) { res.status(500).json({ message: err.message }) }
 });
 
 app.post('/api/admin/products', authMiddleware, adminMiddleware, async (req, res) => {
-  const product = await Product.create(req.body);
-  res.status(201).json(product);
+  try {
+    const product = await Product.create(req.body);
+    res.status(201).json(product);
+  } catch(err) { res.status(500).json({ message: err.message }) }
 });
 
 app.put('/api/admin/products/:id', authMiddleware, adminMiddleware, async (req, res) => {
-  const product = await Product.findByIdAndUpdate(req.params.id, req.body, { new: true });
-  res.json(product);
+  try {
+    const product = await Product.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    res.json(product);
+  } catch(err) { res.status(500).json({ message: err.message }) }
 });
 
 app.get('/api/admin/users', authMiddleware, adminMiddleware, async (req, res) => {
-  const users = await User.find().select('-password');
-  res.json(users);
+  try {
+    const users = await User.find().select('-password');
+    res.json(users);
+  } catch(err) { res.status(500).json({ message: err.message }) }
 });
 
 app.put('/api/admin/users/:id/role', authMiddleware, adminMiddleware, async (req, res) => {
-  const user = await User.findByIdAndUpdate(req.params.id, { role: req.body.role }, { new: true });
-  res.json(user);
+  try {
+    const user = await User.findByIdAndUpdate(req.params.id, { role: req.body.role }, { new: true });
+    res.json(user);
+  } catch(err) { res.status(500).json({ message: err.message }) }
 });
 
 app.delete('/api/admin/products/:id', authMiddleware, adminMiddleware, async (req, res) => {
-  await Product.findByIdAndDelete(req.params.id);
-  res.json({ message: 'Product deleted' });
+  try {
+    await Product.findByIdAndDelete(req.params.id);
+    res.json({ message: 'Product deleted' });
+  } catch(err) { res.status(500).json({ message: err.message }) }
 });
 
 app.put('/api/admin/rentals/:rentalId/maintenance/:requestId', authMiddleware, adminMiddleware, async (req, res) => {
-  const rental = await Rental.findById(req.params.rentalId);
-  if (!rental) return res.status(404).json({ message: 'Rental not found' });
-  const request = rental.maintenanceRequests.id(req.params.requestId);
-  if (request) {
-    request.status = req.body.status;
-    await rental.save();
-  }
-  res.json(rental);
+  try {
+    const rental = await Rental.findById(req.params.rentalId);
+    if (!rental) return res.status(404).json({ message: 'Rental not found' });
+    const request = rental.maintenanceRequests.id(req.params.requestId);
+    if (request) {
+      request.status = req.body.status;
+      await rental.save();
+    }
+    res.json(rental);
+  } catch(err) { res.status(500).json({ message: err.message }) }
 });
 
 // ============ HEALTH ============

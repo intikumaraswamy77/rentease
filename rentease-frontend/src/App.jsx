@@ -13,7 +13,7 @@ import AddProduct from './pages/AddProduct';
 import Wishlist from './pages/Wishlist';
 import Checkout from './pages/Checkout';
 import { API_URL } from './config';
-import { Toaster } from 'react-hot-toast';
+import { Toaster, toast } from 'react-hot-toast';
 import Spinner from './components/Spinner';
 import { useTheme } from './context/ThemeContext';
 
